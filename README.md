@@ -126,6 +126,22 @@ npx cake build  # Rebuild the bundle
 - Ensure you're using Node.js 18 or higher: `node --version`
 - Check that config.json exists and is valid JSON
 
+### Debugging
+
+**Test individual CoffeeScript file compilation**
+
+To debug syntax errors in specific files, compile them individually:
+```bash
+npx coffee -c src/path/to/file.coffee
+```
+
+To test all files in a directory:
+```bash
+find src -name '*.coffee' -exec npx coffee -c {} \;
+```
+
+This helps identify which specific file has syntax errors before running the full build.
+
 For detailed build process documentation, see [MODERNIZATION.md](MODERNIZATION.md).
 
 ## License

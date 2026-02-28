@@ -59,6 +59,12 @@ The Orona project is now fully functional on Node.js 18+!
 - [x] Add troubleshooting section for common issues
 
 ### 2. Code Quality Improvements
+- [ ] Add unit tests for core game logic (critical for future migration)
+  - [ ] Map/tile logic (MapCell, WorldMapCell)
+  - [ ] Game objects (Tank, Shell, Builder, Pillbox, Base)
+  - [ ] Collision detection
+  - [ ] Networking protocol
+  - [ ] Game state management
 - [ ] Fix EventEmitter memory leak (increase max listeners or clean up properly)
 - [ ] Replace deprecated `new Buffer()` with `Buffer.from()` throughout codebase
 - [ ] Add error handling for missing config.json
@@ -76,9 +82,9 @@ The Orona project is now fully functional on Node.js 18+!
 - [ ] Add CI/CD pipeline
 
 ### 5. Git & Version Control
-- [ ] Commit all modernization changes
+- [x] Commit all modernization changes
 - [ ] Tag release (e.g., v0.2.0-modernized)
-- [ ] Update .gitignore for node_modules and build artifacts
+- [x] Update .gitignore for node_modules and build artifacts
 - [ ] Consider forking villain submodule with fixes applied
 
 ## How to Build and Run
