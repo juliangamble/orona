@@ -10,10 +10,16 @@ sounds     = require '../sounds'
 class WorldBase extends BoloObject
 
   # This is a MapObject; it is constructed differently on the server.
-  constructor: (world_or_map, x, y, @owner_idx, @armour, @shells, @mines) ->
+  constructor: (world_or_map, x, y, owner_idx, armour, shells, mines) ->
     if arguments.length == 1
+      super(world_or_map)
       @world = world_or_map
     else
+      super(world_or_map)
+      @owner_idx = owner_idx
+      @armour = armour
+      @shells = shells
+      @mines = mines
       @x = (x + 0.5) * TILE_SIZE_WORLD; @y = (y + 0.5) * TILE_SIZE_WORLD
       # Override the cell's type.
       world_or_map.cellAtTile(x, y).setType '=', no, -1

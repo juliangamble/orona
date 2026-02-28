@@ -24,18 +24,109 @@ and feel free to extend it with your experiences. [Issue] reports are also welco
 
 ## Running an Orona server
 
-Currently, you need [Node.js] 0.6 and [git] to run Orona. To build and run:
+**Requirements:**
+- [Node.js] 18.0 or higher
+- [git]
 
-    git clone https://github.com/stephank/orona.git
-    cd orona
-    git submodule update --init
-    npm install
-    cake build
-    bin/bolo-server
+### Quick Start
 
-You will need a small config file; `bolo-server` will tell you how to create one. Note that the IRC
-functionality is optional, but the only way to do match-making at the moment. If you don't want to
-connect to an IRC network, simply remove the `irc` section from the config file.
+```bash
+git clone https://github.com/stephank/orona.git
+cd orona
+git submodule update --init --recursive
+npm install
+bash fix-villain.sh
+npx cake build
+./bin/bolo-server config.json
+```
+
+### Detailed Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/stephank/orona.git
+   cd orona
+   ```
+
+2. **Initialize submodules** (contains the Villain game engine):
+   ```bash
+   git submodule update --init --recursive
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+4. **Fix Villain submodule** for CoffeeScript 2.x compatibility:
+   ```bash
+   bash fix-villain.sh
+   ```
+
+5. **Build the client bundle:**
+   ```bash
+   npx cake build
+   ```
+
+6. **Create configuration file:**
+   
+   On first run, the server will create a sample `config.json`:
+   ```bash
+   ./bin/bolo-server config.json
+   ```
+   
+   Edit the generated `config.json` to customize settings:
+   ```json
+   {
+     "general": {
+       "base": "http://localhost:8124",
+       "maxgames": 10
+     },
+     "web": {
+       "host": "0.0.0.0",
+       "port": 8124
+     }
+   }
+   ```
+
+7. **Start the server:**
+   ```bash
+   ./bin/bolo-server config.json
+   ```
+
+8. **Play the game:**
+   
+   Open your browser to `http://localhost:8124/`
+
+### Notes
+
+- IRC functionality has been disabled due to incompatibility with modern Node.js
+- The game runs in single-player mode by default
+- See [MODERNIZATION.md](MODERNIZATION.md) for details on the Node.js 18+ upgrade
+
+### Troubleshooting
+
+**Build fails with "Cannot find module 'villain'"**
+```bash
+git submodule update --init --recursive
+```
+
+**Build fails with CoffeeScript syntax errors**
+```bash
+bash fix-villain.sh
+npx cake build
+```
+
+**Browser shows "require is not defined"**
+```bash
+npx cake build  # Rebuild the bundle
+```
+
+**Server won't start**
+- Ensure you're using Node.js 18 or higher: `node --version`
+- Check that config.json exists and is valid JSON
+
+For detailed build process documentation, see [MODERNIZATION.md](MODERNIZATION.md).
 
 ## License
 

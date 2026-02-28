@@ -1,12 +1,16 @@
 fs         = require 'fs'
 {exec}     = require 'child_process'
 browserify = require 'browserify'
+coffeeify  = require 'coffeeify'
+coffee     = require 'coffeescript'
 
 
 task 'build:jsbundle', 'Compile the Bolo client JavaScript bundle', ->
-  b = browserify()
-  b.require './src/client', root: __dirname
-  fs.writeFileSync 'js/bolo-bundle.js', b.bundle()
+  b = browserify('./src/client/index.coffee', extensions: ['.coffee'], standalone: 'BoloWorld')
+  b.transform(coffeeify, {global: true, compile: coffee.compile})
+  b.bundle (err, buf) ->
+    throw err if err
+    fs.writeFileSync 'js/bolo-bundle.js', buf
 
 task 'build:manifest', 'Create the manifest file', ->
   dirtytag = Math.round(Math.random() * 10000)

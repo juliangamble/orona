@@ -9,7 +9,7 @@ fs   = require 'fs'
 url  = require 'url'
 path = require 'path'
 
-connect = require 'connect'
+express = require 'express'
 
 { createLoop } = require 'villain/loop'
 ServerWorld    = require 'villain/world/net/server'
@@ -32,8 +32,9 @@ class BoloServerWorld extends ServerWorld
 
   authority: yes
 
-  constructor: (@map) ->
-    super
+  constructor: (map) ->
+    super()
+    @map = map
     @boloInit()
     @clients = []
     @map.world = this
@@ -48,7 +49,7 @@ class BoloServerWorld extends ServerWorld
 
   # Update, and then send packets to the client.
   tick: ->
-    super
+    super()
     @sendPackets()
 
   # Emit a sound effect from the given location. `owner` is optional.
@@ -279,14 +280,13 @@ allObjects.registerWithWorld BoloServerWorld.prototype
 ## HTTP server application
 class Application
 
-  constructor: (@options={}) ->
+  constructor: (options) ->
+    @options = options || {}
     webroot = path.join path.dirname(fs.realpathSync(__filename)), '../../'
 
-    @connectServer = connect.createServer()
-    if options.web.log
-      @connectServer.use '/', connect.logger()
-    @connectServer.use '/', redirector(options.general.base)
-    @connectServer.use '/', connect.static(webroot)
+    @connectServer = express()
+    @connectServer.use(redirector(options.general.base))
+    @connectServer.use(express.static(webroot))
 
     @games = {}
     @ircClients = []

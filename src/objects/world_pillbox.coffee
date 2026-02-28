@@ -11,10 +11,15 @@ Shell      = require './shell'
 class WorldPillbox extends BoloObject
 
   # This is a MapObject; it is constructed differently on the server.
-  constructor: (world_or_map, x, y, @owner_idx, @armour, @speed) ->
+  constructor: (world_or_map, x, y, owner_idx, armour, speed) ->
     if arguments.length == 1
+      super(world_or_map)
       @world = world_or_map
     else
+      super(world_or_map)
+      @owner_idx = owner_idx
+      @armour = armour
+      @speed = speed
       @x = (x + 0.5) * TILE_SIZE_WORLD; @y = (y + 0.5) * TILE_SIZE_WORLD
 
     # Keep track of owner and position changes.

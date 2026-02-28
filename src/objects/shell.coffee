@@ -24,7 +24,9 @@ class Shell extends BoloObject
   updatePriority: 20
   styled: false
 
-  constructor: (@world) ->
+  constructor: (world) ->
+    super(world)
+    @world = world
     # Track position updates.
     @on 'netSync', =>
       @updateCell()

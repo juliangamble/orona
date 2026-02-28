@@ -14,16 +14,16 @@
     "url": "http://stephan.kochen.nl/"
   },
 
-  "engines: ": {
-    "node": "0.6"
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
-    "coffee-script": "1",
-    "villain": "=0.2.0",
-    "faye-websocket": "0.4",
-    "connect": "2",
-    "irc-js": "2",
-    "browserify": "1.10"
+    "coffeescript": "^2.7.0",
+    "coffeeify": "^3.0.1",
+    "faye-websocket": "^0.11.4",
+    "express": "^4.18.2",
+    "irc-js": "2.0.0-beta.5",
+    "browserify": "^17.0.0"
   },
 
   "bin": {

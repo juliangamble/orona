@@ -3,7 +3,8 @@ path = require 'path'
 
 
 class MapIndex
-  constructor: (@mapPath, callback) ->
+  constructor: (mapPath, callback) ->
+    @mapPath = mapPath
     @reindex callback
 
   reindex: (callback) ->

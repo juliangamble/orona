@@ -33,7 +33,10 @@ createTerrainMap()
 #### Cell class
 
 class MapCell
-  constructor: (@map, @x, @y) ->
+  constructor: (map, x, y) ->
+    @map = map
+    @x = x
+    @y = y
     @type = TERRAIN_TYPES['^']
     @mine = @isEdgeCell()
 
@@ -53,7 +56,8 @@ class MapCell
   #    return yes if @type == type or @type.ascii == type
   #  no
   isType: ->
-    for i in [0..arguments.length]
+    return no unless @type
+    for i in [0...arguments.length]
       type = arguments[i]
       return yes if @type == type or @type.ascii == type
     no
@@ -105,6 +109,7 @@ class MapCell
 
   # Retile this cell. See map#retile.
   retile: ->
+    return unless @type  # Guard against uninitialized cells
     if @pill?
       @setTile @pill.armour, 2
     else if @base?
@@ -379,16 +384,31 @@ class MapView
 # with similar constructors and exposing the same attributes.
 
 class MapObject
-  constructor: (@map) -> @cell = @map.cells[@y][@x]
+  constructor: (map, x, y) ->
+    @map = map
+    @x = x
+    @y = y
+    @cell = @map.cells[@y][@x]
 
 class Pillbox extends MapObject
-  constructor: (map, @x, @y, @owner_idx, @armour, @speed) -> super
+  constructor: (map, x, y, owner_idx, armour, speed) ->
+    super(map, x, y)
+    @owner_idx = owner_idx
+    @armour = armour
+    @speed = speed
 
 class Base extends MapObject
-  constructor: (map, @x, @y, @owner_idx, @armour, @shells, @mines) -> super
+  constructor: (map, x, y, owner_idx, armour, shells, mines) ->
+    super(map, x, y)
+    @owner_idx = owner_idx
+    @armour = armour
+    @shells = shells
+    @mines = mines
 
 class Start extends MapObject
-  constructor: (map, @x, @y, @direction) -> super
+  constructor: (map, x, y, direction) ->
+    super(map, x, y)
+    @direction = direction
 
 
 #### Map class

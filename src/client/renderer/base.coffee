@@ -15,7 +15,8 @@ class BaseRenderer
   # The constructor takes a reference to the World it needs to draw. Once the constructor finishes,
   # `Map#setView` is called to hook up this renderer instance, which causes onRetile to be invoked
   # once for each tile to initialize.
-  constructor: (@world) ->
+  constructor: (world) ->
+    @world = world
     @images = @world.images
     @soundkit = @world.soundkit
 

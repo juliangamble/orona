@@ -1,8 +1,23 @@
-/node_modules/*
-!/node_modules/villain
-/js/bolo-bundle.js
-/bolo.manifest
+# Dependencies
+node_modules/
+
+# Build output
+js/bolo-bundle.js
+bolo.manifest
 *.gz
+
+# Config files (except package.json)
 /*.json
-!/package.json
-/maps/**
+!package.json
+
+# Maps
+maps/**
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db

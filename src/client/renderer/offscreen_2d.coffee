@@ -25,7 +25,8 @@ SEGMENT_SIZE_PIXEL = SEGMENT_SIZE_TILES * TILE_SIZE_PIXELS
 # This class represents a single map segment.
 class CachedSegment
 
-  constructor: (@renderer, x, y) ->
+  constructor: (renderer, x, y) ->
+    @renderer = renderer
     # Tile bounds
     @sx = x * SEGMENT_SIZE_TILES
     @sy = y * SEGMENT_SIZE_TILES
@@ -80,7 +81,7 @@ class CachedSegment
 class Offscreen2dRenderer extends Common2dRenderer
 
   setup: ->
-    super
+    super()
 
     @cache = new Array(MAP_SIZE_SEGMENTS)
     for y in [0...MAP_SIZE_SEGMENTS]

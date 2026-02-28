@@ -1,8 +1,10 @@
-{puts} = require 'sys'
 fs     = require 'fs'
 path   = require 'path'
 createBoloApp = require './application'
-createBoloIrcClient = require './irc'
+# IRC disabled - irc-js incompatible with modern Node.js
+# createBoloIrcClient = require './irc'
+
+puts = console.log
 
 exports.run = ->
   # FIXME: I want YAML, damnit!
@@ -40,7 +42,8 @@ exports.run = ->
   puts "Bolo server listening on port #{config.web.port}."
 
   if config.irc
-    for link, options of config.irc
-      app.registerIrcClient createBoloIrcClient(app, options)
+    puts "Warning: IRC support disabled (irc-js incompatible with Node.js 18+)"
+    # for link, options of config.irc
+    #   app.registerIrcClient createBoloIrcClient(app, options)
 
   return

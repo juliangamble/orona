@@ -18,7 +18,9 @@ class Tank extends BoloObject
   styled: true
 
   # Tanks are only ever spawned and destroyed on the server.
-  constructor: (@world) ->
+  constructor: (world) ->
+    super(world)
+    @world = world
     # Track position updates.
     @on 'netUpdate', (changes) =>
       if changes.hasOwnProperty('x') or changes.hasOwnProperty('y') or changes.armour == 255
