@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+!node_modules/villain/
 
 # Build output
 js/bolo-bundle.js
@@ -21,3 +22,14 @@ yarn-error.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local development notes
+DEVELOPMENT.md
+
+# Visual test output (regenerated on each run)
+test/visual/output/
+test/visual/live/test-bundle.js
+
+# Coding
+.idea/
+.amazonq/

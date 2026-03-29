@@ -144,6 +144,42 @@ This helps identify which specific file has syntax errors before running the ful
 
 For detailed build process documentation, see [MODERNIZATION.md](MODERNIZATION.md).
 
+## Testing
+
+Run the unit test suite:
+```bash
+npm test
+```
+
+Run a specific test file:
+```bash
+npx mocha test/map.test.js
+```
+
+Run tests matching a pattern:
+```bash
+npx mocha test/map.test.js --grep "MapCell"
+```
+
+The project includes unit tests for core game logic (Map/tile logic with 101 tests) and visual integration tests (9 scenarios rendered as tiled before/after PNG). Tests use Mocha, Chai, and node-canvas.
+
+## Visual Integration Tests
+
+Render game interaction scenarios as a tiled before/after image:
+```bash
+npm run test:visual
+```
+
+Output is saved to `test/visual/output/terrain-interactions.png` for visual inspection. See [MODERNIZATION.md](MODERNIZATION.md) for details.
+
+## Live Browser Visual Tests
+
+Watch game scenarios animate in real-time in a tiled browser view:
+```bash
+npm run test:live
+```
+Then open `test/visual/live/index.html` in your browser. See [MODERNIZATION.md](MODERNIZATION.md) for details.
+
 ## License
 
 The source code of Orona is distributed with the GNU GPL version 2, as inherited from WinBolo.

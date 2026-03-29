@@ -59,8 +59,8 @@ The Orona project is now fully functional on Node.js 18+!
 - [x] Add troubleshooting section for common issues
 
 ### 2. Code Quality Improvements
-- [ ] Add unit tests for core game logic (critical for future migration)
-  - [ ] Map/tile logic (MapCell, WorldMapCell)
+- [x] Add unit tests for core game logic (critical for future migration)
+  - [x] Map/tile logic (MapCell, WorldMapCell)
   - [ ] Game objects (Tank, Shell, Builder, Pillbox, Base)
   - [ ] Collision detection
   - [ ] Networking protocol
@@ -76,6 +76,20 @@ The Orona project is now fully functional on Node.js 18+!
 - [ ] Consider migrating from CoffeeScript to modern JavaScript/TypeScript
 
 ### 4. Testing & Deployment
+- [x] Visual integration tests (automated canvas rendering, tiled for parallel comparison)
+  - [x] Shell hits (forest, building, grass chain)
+  - [x] Explosions (terrain, boat)
+  - [x] Road/building/river connections and destruction
+  - [x] Forest clearing
+  - [ ] Tank shooting pillbox (armour decrease, tile change)
+  - [ ] Tank building a wall (builder placement, terrain transition)
+  - [ ] Builder repairing structures
+  - [ ] Flood fill after water exposed
+  - [ ] Tank driving over different terrain (boat, road, grass)
+  - [ ] Pillbox capturing and ownership changes
+  - [ ] Base resupply interactions
+- [x] Live browser visual tests (tiled scenarios animating in real-time for 15s)
+- [ ] Interactive browser test scenarios (load and visually inspect game states)
 - [ ] Test multiplayer functionality
 - [ ] Add npm scripts for common tasks (build, start, dev)
 - [ ] Create Docker container for easy deployment
@@ -246,3 +260,136 @@ perl -i -pe 's/^(\s*)super$/\1super()/g' node_modules/villain/world/net/server.c
 
 - **EventEmitter memory leak warning**: The game shows a warning about too many `finalize` listeners. This is a pre-existing issue in the original codebase where event listeners accumulate during gameplay. The game still functions correctly, but this should be addressed in future updates by properly cleaning up event listeners or increasing the limit with `setMaxListeners()`.
 - **IRC support disabled**: The `irc-js` package is incompatible with Node.js 18+. IRC matchmaking functionality has been disabled.
+
+## Testing
+
+### Running Tests
+
+```bash
+npm test
+```
+
+### Running Tests in Isolation
+
+To run a specific test file:
+```bash
+npx mocha test/map.test.js
+```
+
+To run tests matching a pattern:
+```bash
+npx mocha test/map.test.js --grep "MapCell"
+```
+
+To run a specific test:
+```bash
+npx mocha test/map.test.js --grep "should initialize with correct coordinates"
+```
+
+### Test Coverage
+
+**Map/Tile Logic** (101 unit tests) ✓
+- MapCell: constructor, neighbors, type checking, edge detection, numeric types, setType
+- WorldMapCell: life tracking, obstacles, pixel/world coordinates, tank/man speed, damage handling
+- Map: grid initialization, cell access, iteration, clearing, retiling algorithms
+- Map Serialization: BMAP format dump/load, round-trip preservation
+- Map Objects: Pillbox, Base, Start creation and properties
+- WorldMap: coordinate conversion (pixel/world), random start selection
+- Game Logic: shell hits, explosion damage, boat detection
+
+**Visual Integration Tests** (2 tests, 9 scenarios) ✓
+- Renders before/after game scenarios as tiled PNG for visual comparison
+- Scenarios: shell hits (forest, building, grass chain), explosions (terrain, boat), road/building/river connections, forest adjacency
+- Reference image regression: compares output against stored reference screenshots
+
+Tests use Mocha, Chai, and node-canvas. Test files are in `test/` directory.
+
+### Running Visual Tests
+
+```bash
+npm run test:visual
+```
+
+This generates `test/visual/output/terrain-interactions.png` - a tiled image showing before/after states for each scenario. Open it to visually inspect the results.
+
+To update reference images after intentional changes:
+```bash
+cp test/visual/output/terrain-interactions.png test/visual/reference/terrain-interactions.png
+```
+
+### Live Browser Visual Tests
+
+Run animated scenarios in the browser, tiled in a 3-column grid with before/live panels:
+```bash
+npm run test:live
+```
+
+Then open `test/visual/live/index.html` in your browser. Each scenario plays out over 15 seconds, showing terrain interactions happening in real-time. Scenarios include:
+- Shell hits (forest, building, grass damage chain)
+- Explosions (terrain to crater, boat to water)
+- Building cluster destruction
+- Road network destruction
+- Forest clearing (row by row)
+- River channel formation
+
+To rebuild after code changes:
+```bash
+node test/visual/live/build.js
+```
+
+### Visual Integration Tests (Planned)
+
+Automated tests that render game scenarios to a canvas, tiled so multiple test cases can be compared side-by-side in a single view.
+
+#### Approach
+
+1. **Test harness** renders an HTML page with a grid of small canvases, one per test scenario
+2. Each canvas sets up a minimal game state (map, objects, tanks) and simulates an interaction
+3. The canvas renders the before/after state side-by-side within each tile
+4. Tests run headlessly via Puppeteer/Playwright, capturing screenshots for comparison
+5. Reference screenshots are stored in `test/visual/reference/` for regression detection
+
+#### Example tile layout
+
+```
+┌─────────────────┬─────────────────┬─────────────────┐
+│ Tank shoots     │ Tank builds     │ Shell hits       │
+│ pillbox         │ wall            │ forest           │
+│ [before][after] │ [before][after] │ [before][after]  │
+├─────────────────┼─────────────────┼─────────────────┤
+│ Builder repairs │ Flood fill      │ Tank on boat     │
+│ structure       │ after explosion │ enters water     │
+│ [before][after] │ [before][after] │ [before][after]  │
+└─────────────────┴─────────────────┴─────────────────┘
+```
+
+#### Planned test scenarios
+
+| Scenario | Setup | Action | Expected visual result |
+|---|---|---|---|
+| Tank shoots pillbox | Pillbox with armour 15 | Fire shell at pillbox | Armour decreases, tile changes |
+| Tank builds wall | Empty grass tile, builder nearby | Builder places wall | Grass → building tile |
+| Shell hits forest | Forest tile | Shell impact | Forest → grass |
+| Shell hits building | Building tile | Shell impact | Building → shot building |
+| Terrain damage chain | Grass tile | 5 shell hits | Grass → swamp → river |
+| Builder repairs | Damaged building | Builder repairs | Shot building → building |
+| Flood fill | Land surrounded by water | Explosion creates gap | Water floods in |
+| Tank on boat | Tank at river edge | Tank enters water | Boat tile appears |
+| Pillbox capture | Enemy pillbox, armour 0 | Tank approaches | Ownership changes |
+| Base resupply | Friendly base | Tank on base | Shells/mines replenished |
+
+#### File structure
+
+```
+test/
+  visual/
+    harness.html          # Tiled canvas grid
+    harness.js            # Test runner, renders scenarios
+    scenarios/            # Individual test scenario definitions
+      tank-shoots-pillbox.js
+      tank-builds-wall.js
+      shell-hits-terrain.js
+      ...
+    reference/            # Reference screenshots for regression
+    visual.test.js        # Headless test runner (Puppeteer/Playwright)
+```

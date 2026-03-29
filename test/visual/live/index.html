@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Orona Visual Integration Tests - Live</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #111; color: #ccc; font-family: monospace; padding: 16px; }
+    h1 { font-size: 14px; margin-bottom: 12px; color: #888; }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      max-width: 1200px;
+    }
+    .scenario {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 8px;
+    }
+    .scenario .label {
+      font-size: 11px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .scenario .status {
+      font-size: 9px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    .scenario .panels {
+      display: flex;
+      gap: 4px;
+    }
+    .scenario .panel-label {
+      font-size: 9px;
+      color: #555;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+    .scenario canvas {
+      border: 1px solid #222;
+      image-rendering: pixelated;
+    }
+    #timer {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Orona Visual Integration Tests - Live (15s)</h1>
+  <div id="timer">Loading...</div>
+  <div id="grid"></div>
+
+  <script src="test-bundle.js"></script>
+  <script>
+    var TILE_SIZE = 32;
+    var VIEW_CELLS = 7;
+    var PANEL_PX = VIEW_CELLS * TILE_SIZE;
+    var DURATION_MS = 15000;
+    var CENTER = 100;
+
+    var WorldMap = BoloTest.WorldMap;
+    var tilemap = null;
+    var startTime = null;
+
+    function drawTile(ctx, tx, ty, dx, dy) {
+      ctx.drawImage(tilemap,
+        tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE,
+        dx, dy, TILE_SIZE, TILE_SIZE
+      );
+    }
+
+    function renderView(ctx, tileData, cx, cy) {
+      var half = Math.floor(VIEW_CELLS / 2);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, PANEL_PX, PANEL_PX);
+      for (var dy = 0; dy < VIEW_CELLS; dy++) {
+        for (var dx = 0; dx < VIEW_CELLS; dx++) {
+          var key = (cx - half + dx) + ',' + (cy - half + dy);
+          var tile = tileData[key];
+          if (tile) {
+            drawTile(ctx, tile.tx, tile.ty, dx * TILE_SIZE, dy * TILE_SIZE);
+          } else {
+            drawTile(ctx, 0, 0, dx * TILE_SIZE, dy * TILE_SIZE);
+          }
+        }
+      }
+    }
+
+    function createMapWithCapture() {
+      var map = new WorldMap();
+      var tileData = {};
+      map.world = { tanks: [], mapChanged: function(){}, spawn: function(){} };
+      map.view = {
+        onRetile: function(cell, tx, ty) {
+          tileData[cell.x + ',' + cell.y] = { tx: tx, ty: ty };
+        }
+      };
+      return { map: map, tileData: tileData };
+    }
+
+    function setArea(map, cx, cy, radius, type) {
+      for (var dy = -radius; dy <= radius; dy++)
+        for (var dx = -radius; dx <= radius; dx++)
+          map.cellAtTile(cx + dx, cy + dy).setType(type);
+    }
+
+    function retileArea(map) {
+      map.retile(CENTER - 4, CENTER - 4, CENTER + 4, CENTER + 4);
+    }
+
+    // ---- Scenarios ----
+
+    var scenarios = [
+      {
+        name: 'Shell hits forest \u2192 grass',
+        setup: function(map) { setArea(map, CENTER, CENTER, 3, '.'); map.cellAtTile(CENTER, CENTER).setType('#'); },
+        frames: [
+          { at: 2000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } }
+        ]
+      },
+      {
+        name: 'Shell hits building \u2192 shot building',
+        setup: function(map) { setArea(map, CENTER, CENTER, 3, '.'); map.cellAtTile(CENTER, CENTER).setType('|'); },
+        frames: [
+          { at: 2000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } }
+        ]
+      },
+      {
+        name: 'Grass damage chain \u2192 swamp \u2192 river',
+        setup: function(map) { setArea(map, CENTER, CENTER, 3, '.'); },
+        frames: [
+          { at: 1500, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 3000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 4500, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 6000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 7500, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 9000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 10500, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 12000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+        ]
+      },
+      {
+        name: 'Explosion converts terrain \u2192 crater',
+        setup: function(map) { setArea(map, CENTER, CENTER, 3, '.'); map.cellAtTile(CENTER, CENTER).setType('#'); },
+        frames: [
+          { at: 2000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeExplosionHit(); } }
+        ]
+      },
+      {
+        name: 'Explosion on boat \u2192 water',
+        setup: function(map) { setArea(map, CENTER, CENTER, 3, ' '); map.cellAtTile(CENTER, CENTER).setType('b'); },
+        frames: [
+          { at: 2000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeExplosionHit(); } }
+        ]
+      },
+      {
+        name: 'Building cluster under fire',
+        setup: function(map) {
+          setArea(map, CENTER, CENTER, 3, '.');
+          for (var dy = -1; dy <= 1; dy++)
+            for (var dx = -1; dx <= 1; dx++)
+              map.cellAtTile(CENTER + dx, CENTER + dy).setType('|');
+        },
+        frames: [
+          { at: 1500, action: function(map) { map.cellAtTile(CENTER + 1, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 3000, action: function(map) { map.cellAtTile(CENTER - 1, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 4500, action: function(map) { map.cellAtTile(CENTER, CENTER + 1).takeShellHit({ direction: 0 }); } },
+          { at: 6000, action: function(map) { map.cellAtTile(CENTER, CENTER - 1).takeShellHit({ direction: 0 }); } },
+          { at: 7500, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 9000, action: function(map) { map.cellAtTile(CENTER + 1, CENTER + 1).takeExplosionHit(); } },
+          { at: 10500, action: function(map) { map.cellAtTile(CENTER - 1, CENTER - 1).takeExplosionHit(); } },
+        ]
+      },
+      {
+        name: 'Road network destruction',
+        setup: function(map) {
+          setArea(map, CENTER, CENTER, 3, '.');
+          for (var d = -2; d <= 2; d++) {
+            map.cellAtTile(CENTER + d, CENTER).setType('=');
+            map.cellAtTile(CENTER, CENTER + d).setType('=');
+          }
+        },
+        frames: [
+          { at: 2000, action: function(map) { map.cellAtTile(CENTER + 2, CENTER).setType(' '); map.cellAtTile(CENTER + 1, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 4000, action: function(map) { map.cellAtTile(CENTER - 2, CENTER).setType(' '); map.cellAtTile(CENTER - 1, CENTER).takeShellHit({ direction: 128 }); } },
+          { at: 6000, action: function(map) { map.cellAtTile(CENTER, CENTER + 2).setType(' '); map.cellAtTile(CENTER, CENTER + 1).takeShellHit({ direction: 192 }); } },
+        ]
+      },
+      {
+        name: 'Forest clearing',
+        setup: function(map) {
+          setArea(map, CENTER, CENTER, 3, '.');
+          setArea(map, CENTER, CENTER, 2, '#');
+        },
+        frames: [
+          { at: 1000, action: function(map) { map.cellAtTile(CENTER - 2, CENTER - 2).takeShellHit({ direction: 0 }); } },
+          { at: 2000, action: function(map) { map.cellAtTile(CENTER - 1, CENTER - 2).takeShellHit({ direction: 0 }); } },
+          { at: 3000, action: function(map) { map.cellAtTile(CENTER, CENTER - 2).takeShellHit({ direction: 0 }); } },
+          { at: 4000, action: function(map) { map.cellAtTile(CENTER + 1, CENTER - 2).takeShellHit({ direction: 0 }); } },
+          { at: 5000, action: function(map) { map.cellAtTile(CENTER + 2, CENTER - 2).takeShellHit({ direction: 0 }); } },
+          { at: 6000, action: function(map) { map.cellAtTile(CENTER - 2, CENTER - 1).takeShellHit({ direction: 0 }); } },
+          { at: 7000, action: function(map) { map.cellAtTile(CENTER - 1, CENTER - 1).takeShellHit({ direction: 0 }); } },
+          { at: 8000, action: function(map) { map.cellAtTile(CENTER, CENTER - 1).takeShellHit({ direction: 0 }); } },
+          { at: 9000, action: function(map) { map.cellAtTile(CENTER + 1, CENTER - 1).takeShellHit({ direction: 0 }); } },
+          { at: 10000, action: function(map) { map.cellAtTile(CENTER + 2, CENTER - 1).takeShellHit({ direction: 0 }); } },
+          { at: 11000, action: function(map) { map.cellAtTile(CENTER - 2, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 12000, action: function(map) { map.cellAtTile(CENTER - 1, CENTER).takeShellHit({ direction: 0 }); } },
+          { at: 13000, action: function(map) { map.cellAtTile(CENTER, CENTER).takeShellHit({ direction: 0 }); } },
+        ]
+      },
+      {
+        name: 'River channel formation',
+        setup: function(map) {
+          setArea(map, CENTER, CENTER, 3, '.');
+          map.cellAtTile(CENTER - 3, CENTER).setType(' ');
+        },
+        frames: [
+          { at: 1500, action: function(map) { map.cellAtTile(CENTER - 2, CENTER).setType(' '); } },
+          { at: 3000, action: function(map) { map.cellAtTile(CENTER - 1, CENTER).setType(' '); } },
+          { at: 4500, action: function(map) { map.cellAtTile(CENTER, CENTER).setType(' '); } },
+          { at: 6000, action: function(map) { map.cellAtTile(CENTER + 1, CENTER).setType(' '); } },
+          { at: 7500, action: function(map) { map.cellAtTile(CENTER + 2, CENTER).setType(' '); } },
+          { at: 9000, action: function(map) { map.cellAtTile(CENTER + 3, CENTER).setType(' '); } },
+          { at: 10500, action: function(map) { map.cellAtTile(CENTER, CENTER - 1).setType(' '); } },
+          { at: 12000, action: function(map) { map.cellAtTile(CENTER, CENTER + 1).setType(' '); } },
+        ]
+      }
+    ];
+
+    // ---- UI ----
+
+    function createScenarioElement(scenario) {
+      var div = document.createElement('div');
+      div.className = 'scenario';
+
+      var label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = scenario.name;
+      div.appendChild(label);
+
+      var status = document.createElement('div');
+      status.className = 'status';
+      status.textContent = 'Waiting...';
+      div.appendChild(status);
+
+      var panels = document.createElement('div');
+      panels.className = 'panels';
+
+      var beforeDiv = document.createElement('div');
+      var beforeLabel = document.createElement('div');
+      beforeLabel.className = 'panel-label';
+      beforeLabel.textContent = 'BEFORE';
+      beforeDiv.appendChild(beforeLabel);
+      var beforeCanvas = document.createElement('canvas');
+      beforeCanvas.width = PANEL_PX;
+      beforeCanvas.height = PANEL_PX;
+      beforeDiv.appendChild(beforeCanvas);
+      panels.appendChild(beforeDiv);
+
+      var afterDiv = document.createElement('div');
+      var afterLabel = document.createElement('div');
+      afterLabel.className = 'panel-label';
+      afterLabel.textContent = 'LIVE';
+      afterDiv.appendChild(afterLabel);
+      var afterCanvas = document.createElement('canvas');
+      afterCanvas.width = PANEL_PX;
+      afterCanvas.height = PANEL_PX;
+      afterDiv.appendChild(afterCanvas);
+      panels.appendChild(afterDiv);
+
+      div.appendChild(panels);
+      return { div: div, beforeCanvas: beforeCanvas, afterCanvas: afterCanvas, status: status };
+    }
+
+    // ---- Init ----
+
+    function init() {
+      tilemap = new Image();
+      tilemap.onload = function() {
+        var grid = document.getElementById('grid');
+        var timerEl = document.getElementById('timer');
+        var runners = [];
+
+        for (var s = 0; s < scenarios.length; s++) {
+          var scenario = scenarios[s];
+          var el = createScenarioElement(scenario);
+          grid.appendChild(el.div);
+
+          var before = createMapWithCapture();
+          scenario.setup(before.map);
+          retileArea(before.map);
+          renderView(el.beforeCanvas.getContext('2d'), before.tileData, CENTER, CENTER);
+
+          var after = createMapWithCapture();
+          scenario.setup(after.map);
+          retileArea(after.map);
+
+          runners.push({
+            scenario: scenario,
+            map: after.map,
+            tileData: after.tileData,
+            ctx: el.afterCanvas.getContext('2d'),
+            status: el.status,
+            fired: new Array(scenario.frames.length).fill(false)
+          });
+        }
+
+        // Initial render
+        for (var r = 0; r < runners.length; r++) {
+          renderView(runners[r].ctx, runners[r].tileData, CENTER, CENTER);
+        }
+
+        startTime = performance.now();
+
+        function tick() {
+          var elapsed = performance.now() - startTime;
+          var remaining = Math.max(0, Math.ceil((DURATION_MS - elapsed) / 1000));
+          timerEl.textContent = 'Time remaining: ' + remaining + 's';
+
+          if (elapsed >= DURATION_MS) {
+            timerEl.textContent = 'Complete! Reload to replay.';
+            for (var r = 0; r < runners.length; r++) {
+              runners[r].status.textContent = 'Done';
+              runners[r].status.style.color = '#4a4';
+            }
+            return;
+          }
+
+          for (var r = 0; r < runners.length; r++) {
+            var runner = runners[r];
+            var changed = false;
+            for (var i = 0; i < runner.scenario.frames.length; i++) {
+              if (!runner.fired[i] && elapsed >= runner.scenario.frames[i].at) {
+                runner.scenario.frames[i].action(runner.map);
+                retileArea(runner.map);
+                runner.fired[i] = true;
+                changed = true;
+                runner.status.textContent = 'Action ' + (i + 1) + '/' + runner.scenario.frames.length;
+                runner.status.style.color = '#aa4';
+              }
+            }
+            if (changed) {
+              renderView(runner.ctx, runner.tileData, CENTER, CENTER);
+            }
+          }
+
+          requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(tick);
+      };
+
+      tilemap.onerror = function() {
+        document.getElementById('timer').textContent = 'Error: Could not load tilemap image';
+      };
+
+      tilemap.src = '../../../images/base.png';
+    }
+
+    init();
+  </script>
+</body>
+</html>
