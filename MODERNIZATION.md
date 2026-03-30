@@ -129,17 +129,17 @@ Create a `config.json` file in the project root:
 ```json
 {
   "general": {
-    "base": "http://localhost:8000",
-    "maxgames": 10
+    "base": "http://localhost:8124",
+    "maxgames": 5
   },
   "web": {
-    "host": "0.0.0.0",
-    "port": 8000
+    "port": 8124,
+    "log": true
   }
 }
 ```
 
-Note: IRC functionality is optional. Remove the `irc` section if you don't need matchmaking.
+Note: The generated sample includes an `irc` section which can be removed — IRC functionality is disabled.
 
 ## Summary
 

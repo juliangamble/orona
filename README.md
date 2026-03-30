@@ -80,14 +80,16 @@ npx cake build
    {
      "general": {
        "base": "http://localhost:8124",
-       "maxgames": 10
+       "maxgames": 5
      },
      "web": {
-       "host": "0.0.0.0",
-       "port": 8124
+       "port": 8124,
+       "log": true
      }
    }
    ```
+   
+   Note: The generated sample also includes an `irc` section which can be removed — IRC functionality is disabled.
 
 7. **Start the server:**
    ```bash
