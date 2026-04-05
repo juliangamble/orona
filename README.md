@@ -163,7 +163,7 @@ Run tests matching a pattern:
 npx mocha test/map.test.js --grep "MapCell"
 ```
 
-The project includes unit tests for core game logic (Map/tile logic with 101 tests) and visual integration tests (9 scenarios rendered as tiled before/after PNG). Tests use Mocha, Chai, and node-canvas.
+The project includes unit tests for core game logic (393 tests covering map/tile logic, game objects, server components, and helpers) and visual integration tests (9 scenarios rendered as tiled before/after PNG). Tests use Mocha, Chai, and node-canvas.
 
 ## Visual Integration Tests
 

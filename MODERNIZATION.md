@@ -61,9 +61,12 @@ The Orona project is now fully functional on Node.js 18+!
 ### 2. Code Quality Improvements
 - [x] Add unit tests for core game logic (critical for future migration)
   - [x] Map/tile logic (MapCell, WorldMapCell)
-  - [ ] Game objects (Tank, Shell, Builder, Pillbox, Base)
-  - [ ] Collision detection
-  - [ ] Networking protocol
+  - [x] Game objects (Tank, Shell, Builder, WorldPillbox, WorldBase)
+  - [x] Helpers (distance, heading, extend)
+  - [x] World mixin (tank management, map object spawning)
+  - [x] Networking protocol (net message identifiers)
+  - [x] Server components (application, command, map_index, irc)
+  - [ ] Collision detection (integration-level)
   - [ ] Game state management
 - [ ] Fix EventEmitter memory leak (increase max listeners or clean up properly)
 - [ ] Replace deprecated `new Buffer()` with `Buffer.from()` throughout codebase
@@ -288,7 +291,7 @@ npx mocha test/map.test.js --grep "should initialize with correct coordinates"
 
 ### Test Coverage
 
-**Map/Tile Logic** (101 unit tests) ✓
+**Map/Tile Logic** (131 unit tests) ✓
 - MapCell: constructor, neighbors, type checking, edge detection, numeric types, setType
 - WorldMapCell: life tracking, obstacles, pixel/world coordinates, tank/man speed, damage handling
 - Map: grid initialization, cell access, iteration, clearing, retiling algorithms
@@ -296,6 +299,24 @@ npx mocha test/map.test.js --grep "should initialize with correct coordinates"
 - Map Objects: Pillbox, Base, Start creation and properties
 - WorldMap: coordinate conversion (pixel/world), random start selection
 - Game Logic: shell hits, explosion damage, boat detection
+
+**Game Objects** (173 unit tests) ✓
+- Tank: reset, direction, range, allies, tiles, combat, turning, acceleration, shooting
+- Builder: states, getTile, performOrder, kill, reached, build actions, update
+- Shell: direction, tile, spawn, move, collision detection, asplode, update
+- WorldPillbox: constructor, updateOwner/Cell, placeAt, aggravate, takeShellHit, repair, update/targeting
+- WorldBase: constructor, updateOwner, takeShellHit, refueling, findSubject
+
+**Server Components** (51 unit tests) ✓
+- application: createBoloApp, game slots, game IDs, WebSocket routing, redirector middleware
+- command: CLI usage, sample config creation, JSON validation
+- map_index: file indexing, fuzzy search, reindex
+- irc: CoffeeScript compilation, exports, class structure
+- net: server/client message identifiers
+
+**Shared Modules** (36 unit tests) ✓
+- helpers: extend, distance, heading
+- world_mixin: boloInit, addTank, removeTank, getAllMapObjects, spawnMapObjects, resolveMapObjectOwners
 
 **Visual Integration Tests** (2 tests, 9 scenarios) ✓
 - Renders before/after game scenarios as tiled PNG for visual comparison
