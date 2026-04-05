@@ -100,6 +100,10 @@ npx cake build
    
    Open your browser to `http://localhost:8124/`
 
+9. **Multiplayer:**
+   
+   To play with others, open `http://localhost:8124/` in additional browser tabs or windows. Each connection joins the same demo game on the "Everard Island" map and gets its own tank. For LAN play, other machines can connect using your IP address (e.g. `http://192.168.1.x:8124/`).
+
 ### Notes
 
 - IRC functionality has been disabled due to incompatibility with modern Node.js
